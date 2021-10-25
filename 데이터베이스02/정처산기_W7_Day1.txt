@@ -1,0 +1,193 @@
+정보처리산업기사 취득과정, W7 Day1.
+
+[TODAY]	am 프로젝트 : DB설계 시작 - 중간점검 14:00까지 제출(JavaProgramming2020@gmail.com)
+	pm 내부평가대비
+
+	운영체제 / 데이터베이스 / 네트워크
+-----------------------------------------------------------------------------------------
+"DB" / "DBMS" / "SQL"
+	DB : DataBase	
+	DBMS : DataBase Management System
+	SQL : Structured 'Query' Language (구조화된 질의어)
+		--> SQL은, (DBMS에서 사용하는 언어. '쿼리문'. '질의어')
+
+※ 오라클 처음 설치시, system계정에서: (암기)
+1) alter user hr account unlock;    -- hr계정을 unlock함 (오라클 설치 후 한번만 하면 돼요)
+2) alter user hr identified by hr;  -- hr계정의 비밀번호를 hr로 설정함
+---------------------------------------------------------------------------------------
+SELECT : 테이블로부터 데이터를 조회.
+	- [문법] SELECT 컬럼명(들) FROM 테이블명;
+		(ex) SELECT * FROM employees;   // employees 테이블로부터
+						// 모든 컬럼들을 조회.
+
+연습1. jobs 테이블로부터 JOB_TITLE, MAX_SALARY 정보를 
+	조회(select)해보세요.
+
+연습2. departments, jobs 테이블의 컬럼 구성을 확인해보고
+	이 두 테이블의 모든 데이터(row들)를 조회.
+
+연습3. 사원 테이블로부터 모든 사원들의 사원번호, first_name, 이메일, 폰번호를 조회.
+
+연습4. 모든 부서들의 부서ID, 부서이름을 조회.
+				// 부서는 총 몇 개? ___개
+연습5. 모든 나라들의 나라ID, 나라이름을 조회.
+				// 나라는 총 몇 개? ___개
+				// 중,일,미의 나라ID는?
+연습6. 사원 'Steven King' 의 부서ID는 ________
+			업무ID(JOB_ID)는 ________
+			따라서,
+			부서이름은 ________________
+			업무이름은 ________________
+
+---------------------------------------------------------------------------------------
+조회할 때, 컬럼이름에 별칭(alias)을 부여할 수 있음 :
+	- 컬럼명 다음에 "as" 키워드. (또는 생략)
+	- 별칭으로 공백, 특수문자 등을 사용할 경우 또는 대/소문자를 구분해야 하는 경우에는
+	  반드시 따옴표(")를 써야 함.
+
+연습.	사원테이블에서 모든 사원들의 사원번호와 이름을 조회하되,
+	컬럼이름을 각각 '사원번호(사원ID)' 와 '사원이름'으로.
+
+------------------------------------------------------------------------
+SELECT문에서, 
+	컬럼명 자리에 '수식'을 쓸 수가 있음
+
+-- 아래와 같이 주어졌다고 가정:
+	연봉 = 12 * (salary + salary * commission_pct)
+	     = 12 * salary * (1 + commission_pct)
+	수수료(commission) = salary * commission_pct
+
+연습. 모든 사원들의 '연봉'과 '수수료'를 조회.
+
+(null) ---> "아직 결정되지 않은 값"(1로 할지, 2로 할지, ...)
+		(ex) 2200 * (null) -----> (null)             // (이해)
+
+NVL함수 : "NVL(컬럼명, 널일_경우_치환할_값)"
+	---> (ex) NVL(pct, 0) ---> pct가 null인 경우 0을 리턴, null이 아니면 pct를 리턴.
+
+연습. 모든 사원들의 '연봉'과 '수수료'를 조회 (2).
+
+-------------------------------------------------------------------------
+[공식]	연봉 = 12 * salary * (1 + commission_pct)
+
+사원테이블 연습	
+	1) "이름", "성", "고용일" 정보를 조회.
+	2) "사원번호", "이름", "성", "부서ID" 정보를 조회.
+	3) "사원번호", "이름", "성", "업무ID", "매니저ID" 정보를 조회.
+	4) 10% 연봉 인상시 연봉을 확인하기 위해,
+	   "이름", "성", "연봉", "연봉(10% 인상시)" 정보를 조회.
+	5) 10% 연봉 인상시 연봉인상액을 확인하기 위해,
+	   "이름", "성", "연봉인상액(10% 인상시)" 정보를 조회.
+	고급6) 이 테이블의 원급 단위는 $인데, 이를 원 단위로 확인하기 위해,
+	   "이름", "성", "연봉($)", "연봉(원)" 정보를 조회.
+				// 환율, $1 = 1,168.80원 가정.
+
+----------------------------------------------------------------------
+연습.	사원들의
+	"이름", "성", "급여(월)"를 조회해보세요.
+
+SELECT first_name 이름, last_name 성, salary "급여(월)"
+FROM employees; 
+
+----------------------------------------------------------------
+JDBC.
+
+- 주어지는 정보 :
+	① oracle.jdbc.driver.OracleDriver
+	② jdbc:oracle:thin:@localhost:1521:xe
+
+1) 설치(ojdbc6.jar) -> 자바 프로젝트에 적용.
+	<외부 라이브러리 파일을 자바 프로젝트에 적용>
+	1. 프로젝트 이름 위 우클릭 - Properties - Java Build Path
+	2. Libraries탭
+	3. Add External JARs
+ 
+2) 테스트 코드.
+	Connection 객체 
+	Statement 객체
+	ResultSet 객체
+
+-----------------------------------------------------------------
+Oracle:
+
+select * from Employees;   -- 한 문장을 실행 : Ctrl + Enter
+select first_name, last_name, email from employees;
+
+--연습1. jobs 테이블로부터 JOB_TITLE, MAX_SALARY 정보를 
+--	조회(select)해보세요.
+SELECT job_title, max_salary FROM jobs;
+
+--연습2. departments, jobs 테이블의 컬럼 구성을 확인해보고
+--	이 두 테이블의 모든 데이터(row들)를 조회.
+SELECT * FROM departments;
+SELECT * FROM jobs;
+
+--연습3. 사원 테이블로부터 모든 사원들의 사원번호, first_name, 이메일, 폰번호를 조회.
+SELECT employee_id, first_name, email, phone_number FROM employees;
+
+--연습4. 모든 부서들의 부서ID, 부서이름을 조회.
+SELECT department_id, department_name FROM departments;
+--				// 부서는 총 몇 개? ___개
+SELECT count(*) FROM departments;  -- 참고 (뒤에서)
+
+--연습5. 모든 나라들의 나라ID, 나라이름을 조회.
+SELECT country_id, country_name FROM countries;
+--				// 나라는 총 몇 개? ___개
+--				// 중,일,미의 나라ID는?
+--연습6. 사원 'Steven King' 의 부서ID는 ________
+--			업무ID(JOB_ID)는 ________
+--			따라서,
+--			부서이름은 ________________
+--			업무이름은 ________________
+
+--연습.	사원테이블에서 모든 사원들의 사원번호와 이름을 조회하되,
+--	컬럼이름을 각각 '사원번호(사원ID)' 와 '사원이름'으로.
+SELECT employee_id "사원번호(사원ID)", first_name "사원Name" FROM employees;
+
+-------------------------------------------------------------------------
+-- SELECT문 사용시, 수식을 컬럼명 자리에 사용할 수 있음:
+SELECT employee_id*10 FROM employees;
+
+SELECT * FROM employees;
+-- 아래와 같이 주어졌다고 가정:
+--    연봉 = 12 * (salary + salary * commission_pct)
+--        = 12 * salary * (1 + commission_pct)
+--    수수료(commission) = salary * commission_pct
+-- 연습. 모든 사원들의 '연봉'과 '수수료'를 조회.
+SELECT (12 * salary * (1 + NVL(commission_pct, 0))) 연봉, (salary * NVL(commission_pct, 0)) 수수료 FROM employees;
+select * from employees;
+--사원테이블 연습	
+--	1) "이름", "성", "고용일" 정보를 조회.
+SELECT first_name 이름, last_name 성, hire_date 고용일 FROM employees;
+
+--	2) "사원번호", "이름", "성", "부서ID" 정보를 조회.
+SELECT employee_id 사원번호, first_name 이름, last_name 성, department_id 부서ID FROM employees;
+
+--	3) "사원번호", "이름", "성", "업무ID", "매니저ID" 정보를 조회.
+SELECT employee_id 사원번호, first_name 이름, last_name 성, job_id 업무ID, manager_id 매니저ID FROM employees;
+
+--	4) 10% 연봉 인상시 연봉을 확인하기 위해,
+--	   "이름", "성", "연봉", "연봉(10% 인상시)" 정보를 조회.
+SELECT first_name 이름, last_name 성,
+    (12 * salary * (1 + NVL(commission_pct, 0))) 연봉, 
+    (1.1 * 12 * salary * (1 + NVL(commission_pct, 0))) "연봉(10% 인상시)" FROM employees;
+
+--	5) 10% 연봉 인상시 연봉인상액을 확인하기 위해,
+--	   "이름", "성", "연봉인상액(10% 인상시)" 정보를 조회.
+SELECT first_name 이름, last_name 성, 
+    (0.1 * 12 * salary * (1 + NVL(commission_pct, 0))) "연봉인상액(10% 인상시)" FROM employees;
+
+--	고급6) 이 테이블의 월급(salary) 단위는 $인데, 이를 원 단위로 확인하기 위해,
+--	   "이름", "성", "연봉($)", "연봉(원)" 정보를 조회.
+--				// 환율, $1 = 1,168.80원 가정.
+SELECT first_name 이름, last_name 성,
+    (12 * salary * (1 + NVL(commission_pct, 0) )) "연봉($)",
+    (12 * salary * (1 + NVL(commission_pct, 0) ))*1168.80 "연봉(원)"
+  FROM employees;
+
+-------------------------------------------------------------------
+
+							끝.
+
+
+
