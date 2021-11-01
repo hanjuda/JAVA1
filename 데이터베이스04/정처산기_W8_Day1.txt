@@ -1,0 +1,80 @@
+정보처리산업기사 취득과정, W8 Day1.
+
+[TODAY] "SQL활용"
+	- 내부평가 : 이번 주 금요일 16:00~ (예정)
+	- 프로젝트 -----> DB설계 / 더미데이터 셋팅 / JDBC 이용 테스트.
+			회원가입 -> 로그인 -> 상품주문, 채팅, 게시글...
+			예매 -> 상영관선택 -> 날짜선택 -> 영화...목록출력
+			----> 좌석입력(a01,a02) --> 예약가능여부확인
+	- 화수목 : 내부평가대비
+
+---------------------------------------------------------------
+무결성제약조건. 
+
+"데이터 무결성" : 부적절한 자료가 입력되어 동일한 내용에 서로 다른 데이터가 저장되는 것을 허용하지 않는 성질. (ex. 외래키 ----------> 다른 테이블의 PK)
+
+		R-DBMS
+(ex)		Member 			Order				Food
+		id (PK)	YG		order_id YG -> "FK"		id (PK)	jjim
+		pw	1234		food_id jjim -> "FK"		name	찜
+		name	와이지		order_date 2021/11/1 9:20	price	18000
+		address	서울 신촌	complete 0
+		phone	5595-9500
+
+--------------------------------------------------------------------------------------
+무결성 제약조건 5가지:
+	1) NOT NULL 제약조건    ex) Member테이블 --> Name
+	2) UNIQUE 제약조건 : 유일한 값.     ex) Member테이블 --> 동일한 폰 번호로 가입 X
+	3) CHECK 제약조건 : 조건식을 지정.  
+	★4) PRIMARY KEY 제약조건(PK) : (NOT NULL + UNIQUE)
+	★5) FOREIGN KEY 제약조건(FK) : 다른 테이블의 PK를 참조.
+
+[최소한] 1. 무결성 제약조건 5가지 암기.
+	 2. PK, FK는 예를 통해 설명할 수 있을 정도로 이해.
+
+(ex)
+SYSTEM:
+	CREATE USER : User1101 / User1234
+	Connect, Resource 권한 부여.
+	- Member 테이블 / id(PK), pw, name, phone
+	- OrderFood 테이블 / member_id, food_id, order_date, complete
+	- Food 테이블 / id(PK), name, price
+
+(ex)		Member 			OrderFood				Food
+		id (PK)	YG		member_id YG -> "FK"		id (PK)	jjim
+		pw	1234		food_id jjim -> "FK"		name	찜
+		name	와이지		order_date 2021/11/1 9:20	price	18000
+		address	서울 신촌	complete 0
+		phone	5595-9500
+
+(ex)		Board
+		bno (PK) 
+		writer_id (FK)
+		title	  (NN)
+		content	  (NN)
+		write_date 기본값:sysdate
+
+----------------------------------------------------------------------------------------
+--INSERT INTO Member(id, pw, name, address, phone)
+--VALUES ('YG','1234','와이지','서울 마포구','5595-9500');
+INSERT INTO Member(pw,name,address,phone)
+VALUES ('12345','와이지2','서울 마포구','5595-9501');
+
+SELECT * FROM MEMBER;
+SELECT * FROM BOARD;
+--SELECT SYSDATE FROM DUAL;
+DELETE FROM MEMBER WHERE ID='YG';
+UPDATE MEMBER SET ID='YG2' WHERE ID='YG';
+
+INSERT INTO board(bno, writer_id, title, content, write_date)
+VALUES (1, 'YG', '제목!', '내용!', sysdate);
+INSERT INTO board(bno, writer_id, title, content)
+VALUES (2, 'YG', '제목!!', '내용!!');
+INSERT INTO board(bno, writer_id, title)
+VALUES (3, 'YG', '제목!!');   -- ERR. content컬럼은 NN 제약조건!
+INSERT INTO board(bno, writer_id, title, content)
+VALUES (4, 'GG', '제목!!!', '내용!!!'); -- ERR. Member테이블에 GG가 없음!
+--commit;   
+
+										끝.
+
