@@ -1,0 +1,211 @@
+정보처리산업기사 취득과정, W8 Day2.
+
+[TODAY] "SQL활용" : 내부평가대비
+	PRJ : DB설계 -> JDBC 시나리오대로 DB테스트
+
+	이번 금요일 : 내부평가 "SQL활용"
+	다음 주 월요일 : 내부평가 피드백
+	다음 주 화요일 : 플젝Day / 전체상담
+
+------------------------------------------------------------------------
+그룹함수 : (ex) count()함수.
+	--> 여러 행을 이용한 통계정보를 계산하는 함수.
+	- max(컬럼명), min(컬럼명), avg(컬럼명), sum(컬럼명)
+	  (참고) stddev(컬럼명) ---> 표준편차
+		 variance(컬럼명) -> 분산
+	- count(컬럼명) ----> (null)을 제외하고 카운트.
+	  count(*) 
+	- [주의] 1) null값은 무시됨.
+		 2) 그룹함수 실행결과 여러 개의 행이 딱 1개의 행이 된다!
+		    따라서, "일반적인 컬럼과 함께 SELECT문에서
+			     그룹함수를 사용하려 할 때 주의!"
+			     --> 결론: "일반적인 컬럼을 그룹함수와 함께
+					사용할 때에는, 일반적인 컬럼을
+					GROUP BY절에!"
+
+Ex. 사원테이블의 평균급여를 조회.
+
+Ex. 사원들 중에서 커미션을 받는(commission_pct가 null이 아닌) 사원들의 수를 조회.
+	< IS NULL / IS NOT NULL >
+	※ money가 null이 아닌 행을 조회:
+		SELECT * FROM 테이블명 WHERE money IS NOT NULL;
+	※ Ex. 매니저ID가 null인 사원의 이름:
+	SELECT first_name FROM employees WHERE manager_id IS NOT NULL;
+
+Ex. 부서ID가 100인 부서에 속한 그 어떤 사원보다 더 많은 급여를
+	받는 사원들의 이름, 성, 급여를 조회
+	(1) 부서ID가 100인 부서의 최대 급여를 조회
+	(2) 그 최대 급여보다 더 많은 급여를 받는 사원들을 조회
+SELECT MAX(salary) FROM employees WHERE department_id = 100;  -- 12008
+SELECT first_name, last_name, salary FROM employees WHERE salary > 12008;
+--> SELECT first_name, last_name, salary FROM employees WHERE salary > (SELECT MAX(salary) FROM employees WHERE department_id = 100);  // "서브쿼리"
+
+(Ex) 로그인 처리
+	1) SELECT PW FROM member WHERE ID='YG';
+	2) SELECT count(*) FROM member WHERE ID='YG' AND PW='1234';
+
+----------------------------------------------------------------
+GROUP BY절.
+	- (ex) 부서별 평균급여
+	- "GROUP BY 컬럼명"
+	- GROUP BY절이 있으면 그룹함수는 --> 끼리끼리.
+	  GROUP BY절이 없으면 그룹함수는 --> 전체를 하나의 그룹으로.
+
+연습.	업무별로 평균급여를 조회하되, 평균급여 기준 내림차순 출력.
+SELECT job_id 업무ID, avg(salary) 평균급여 FROM employees GROUP BY job_id
+ORDER BY 평균급여 DESC;
+
+연습.	부서별로 부서ID, 인원수를 조회.
+SELECT department_id 부서ID, count(*)||'명' 인원수
+FROM employees
+GROUP BY department_id;
+--SELECT department_id 부서ID, count(department_id)||'명' 인원수
+--FROM employees
+--GROUP BY department_id;
+
+Ex(고급). 부서별로 부서명, 인원수를 조회.
+	- 부서ID 는 employees 테이블에 있고.
+	- 부서명 은 departments 테이블에 있고.
+	- 인원수 는 employees 테이블에 있고.
+	- 연결고리: employees의 department_id = departments의 department_id
+SELECT department_name, count(employees.employee_id) 인원수
+FROM employees, departments
+WHERE employees.department_id = departments.department_id
+GROUP BY department_name;		// "조인(Join)"
+
+-- Ex(고급). 모든 사원들의 이름과 부서명을 출력.    // "조인"
+SELECT first_name, job_title
+FROM employees, jobs
+WHERE employees.job_id = jobs.job_id;
+--------------------------------------------------------------------
+시퀀스(Sequence) : (ex) 게시판, 게시글 쓰기 -> 새로운 번호를 만들 때.
+
+- 시퀀스 생성할 줄 알아야. 내부평가/외부평가 목적 DDL문(create sequence)을.
+- 사용:
+	시퀀스이름.nextval ----> "다음 숫자는?"
+	시퀀스이름.currval ----> (현재 숫자는?) ----> "최근에 만든 숫자는?"
+
+--------------------------------------------------------------------
+내부평가대비 : 트랜잭션 / 커밋 / 롤백
+	- "commit"
+	- "rollback"
+
+v. 학습모듈 p.22까지 정리.
+
+---------------------------------------------------------------------------
+Oracle(hr):
+
+select * from employees;          
+select salary from employees;
+select min(salary) from employees;
+select max(salary) from employees;
+select avg(salary) from employees;
+select sum(salary) from employees;
+select min(salary), max(salary), avg(salary), sum(salary) from employees;
+select count(salary) from employees;
+select count(*) from employees;
+select count(manager_id) from employees;
+select * from employees;
+
+--select first_name, last_name, salary, avg(salary) from employees;  -- ERR. (이해)
+
+SELECT first_name FROM employees WHERE manager_id IS NULL;
+SELECT 3 * NULL FROM DUAL;
+
+-- Ex. 사원테이블의 평균급여를 조회.
+SELECT AVG(salary) FROM employees;
+
+-- Ex. 사원들 중에서 커미션을 받는(commission_pct가 null이 아닌) 사원들의 수를 조회.
+SELECT count(*) FROM employees WHERE commission_pct IS NOT NULL;
+
+--Ex. 부서ID가 100인 부서에 속한 그 어떤 사원보다 더 많은 급여를
+--	받는 사원들의 이름, 성, 급여를 조회
+--	(1) 부서ID가 100인 부서의 최대 급여를 조회
+--	(2) 그 최대 급여보다 더 많은 급여를 받는 사원들을 조회
+
+select * from employees;
+SELECT max(salary) FROM employees GROUP BY department_id;
+SELECT avg(salary) FROM employees GROUP BY department_id;
+
+-- 연습. 업무별로 평균급여를 조회하되, 평균급여 기준 내림차순 출력.
+SELECT job_id 업무ID, avg(salary) 평균급여 FROM employees GROUP BY job_id
+ORDER BY 평균급여 DESC;
+
+-- 연습.	부서별로 부서ID, 인원수를 조회.
+SELECT department_id 부서ID, count(*)||'명' 인원수
+FROM employees
+GROUP BY department_id;
+--SELECT department_id 부서ID, count(department_id)||'명' 인원수
+--FROM employees
+--GROUP BY department_id;
+
+-- Ex(고급). 부서별로 부서명, 인원수를 조회.
+--	- 부서ID 는 employees 테이블에 있고.
+--	- 부서명 은 departments 테이블에 있고.
+--	- 인원수 는 employees 테이블에 있고.
+--	- 연결고리: employees의 department_id = departments의 department_id
+SELECT department_name, count(employees.employee_id) 인원수
+FROM employees, departments
+WHERE employees.department_id = departments.department_id
+GROUP BY department_name;
+
+--Ex(고급). 모든 사원들의 이름과 업무명을 출력.    // "조인"
+SELECT first_name, job_title
+FROM employees, jobs
+WHERE employees.job_id = jobs.job_id;
+
+desc employees;
+
+select max(salary) from employees;
+select salary from employees order by salary desc;
+select * from (select salary from employees order by salary desc) where rownum<=1;
+
+-------------------------------------------------------------------------------------
+Oracle(User1101):
+
+select * from board;
+select * from member;
+
+select max(bno)+1 from board;
+INSERT INTO board(bno, writer_id, title, content)
+VALUES (SEQ_BOARD.nextval, 'YG', '제목~', '내용~');
+
+SELECT SEQ_BOARD.nextval FROM DUAL;
+SELECT SEQ_BOARD.currval FROM DUAL;
+
+--commit;
+--delete from board;
+--rollback;
+
+SELECT * FROM tabs;
+SELECT * FROM user_tables;
+
+select * from test_table;
+update test_table set a=2, b=1 where a=1 and b=2;
+--delete from test_table;
+--INSERT INTO test_table VALUES(1,2,'abc');
+--INSERT INTO test_table VALUES(1,2,3);
+ALTER TABLE test_table ADD c varchar2(20);
+ALTER TABLE test_table MODIFY c number;
+alter table test_table drop column c;
+
+-- CREATE TABLE : 테이블 생성
+-- ALTER TABLE : 테이블 변경
+
+select * from board;
+select * from member;
+--delete from member where id='YG';
+--truncate table board;  -- 내용 비움 (table은 안 버림)
+--drop table board;      -- 테이블 자체를 삭제
+
+--INSERT INTO board(bno, writer_id, title, content) values(SEQ_BOARD.nextval,'YG','제목1','내용1');
+--INSERT INTO board(bno, writer_id, title, content) values(SEQ_BOARD.nextval,'YG','제목2','내용2');
+--INSERT INTO board(bno, writer_id, title, content) values(SEQ_BOARD.nextval,'YG','제목3','내용3');
+--INSERT INTO board(bno, writer_id, title, content) values(SEQ_BOARD.nextval,'YG','제목4','내용4');
+--INSERT INTO board(bno, writer_id, title, content) values(SEQ_BOARD.nextval,'YG','제목5','내용5');
+
+
+----------------------------------------------------------------------------------------------
+							끝.
+
+
