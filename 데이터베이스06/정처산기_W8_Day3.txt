@@ -1,0 +1,163 @@
+정보처리산업기사 취득과정, W8 Day3.
+
+[TODAY] "SQL활용"
+
+----------------------------------------------------------------------------
+세이브포인트.
+	- "savepoint 세이브포인트_이름;"    (ex) "savepoint sp1;"
+	- "rollback to 세이브포인트;"     (ex) "rollback to sp1;"
+	  (cf) "rollback;" ---> 무조건, "가장 마지막으로 commit한 시점으로" 되돌림!
+
+----------------------------------------------------------------------------
+조인(Join)
+	- JOIN : 여러 테이블로부터 데이터를 조회하는 것.
+	- 크게 두 종류 : 
+		1) "등가조인(Equi-join)" : 두 테이블 간 동일한 값을 찾아서 조인. (일반적)
+		2) "비등가조인(Non-equi-join)" : 두 테이블 간 다른 값을 부등호를 통해서 조인. (참고만)
+
+---------------------------------------------------------------------------
+"Cartesian Product(카티션 곱)"
+	--> "조인조건"이 잘못된 상황 (아마도 누락!) - 이해.
+
+카티션 곱을 피하려면,
+	--> 테이블 n개 에 대해서 (n-1)개의 조인조건이 필요함(최소한). (이해)
+---------------------------------------------------------------------------
+
+프로젝트 ~13시  // 질문은 손!
+	- 조인을 고려한 DB설계 (필요시, 설계를 변경)
+	- (1) JDBC로 "모든 시나리오"에 대해 DB테스트
+	  (2) 조인을 고려하여 스토리보드에 SQL문 작성
+
+Ex. 부서ID가 40인 사원들의 사원ID, 이름, 성, "부서명"을 출력.
+SELECT e.employee_id, e.first_name, e.last_name, e.department_id 
+FROM employees e, departments d
+WHERE e.department_id = d.department_id;
+
+연습1.	급여가 12000 달러 이상인 사원들의 "사원번호", "이름", "성", "급여", "부서명"을 조회.
+
+연습2.	'Steven King' 사원의 이름_성, 부서명과 부서의 위치(country_id, city)를 조회.
+	(SELECT 결과)	이름_성		부서명		부서위치
+			Steven King	Executive	US Seattle
+SELECT e.first_name || ' ' || e.last_name "이름_성", d.department_name "부서명", l.country_id || ' ' || l.city "부서위치"
+FROM employees e, departments d, locations l
+WHERE e.department_id = d.department_id
+AND d.location_id = l.location_id;
+
+연습3.	연봉이 100000달러(십만달러) 이상인 사원들이 근무하는 부서가 위치하는 국가명을 사원의 이름과 함께 조회. (+ 연봉 순으로 내림차순 정렬하여 출력)
+					※ 연봉 = (월급 + 커미션) * 12
+	(SELECT 결과)	이름	성	연봉	부서명	국가명
+			...	...	...	...	...
+			...	...	...	...	...
+			...	...	...	...	...
+SELECT e.first_name 이름, e.last_name 성, (e.salary + e.salary*NVL(e.commission_pct,0))*12 연봉, d.department_name 부서명, c.country_name 국가명
+FROM employees e, departments d, locations l, countries c
+WHERE e.department_id = d.department_id
+AND d.location_id = l.location_id
+AND l.country_id = c.country_id
+AND (e.salary + e.salary*NVL(e.commission_pct,0))*12 >= 100000
+ORDER BY 연봉 DESC;
+
+-----------------------------------------------------------------------------------
+(참고) "자기 참조 조인(Self Join)" ---> ex. "e1도 employees테이블, e2도 employees테이블"
+
+Ex. 사원테이블의 사원들의 이름_성, '관리자(매니저.사수)'의 이름_성을 조회.
+	(단, 매니저ID가 (null)인 경우는 제외)
+
+SELECT e1.first_name || ' ' || e1.last_name "나", e2.first_name || ' ' || e2.last_name "매니저"
+FROM employees e1, employees e2
+WHERE e1.manager_id = e2.employee_id;   // (이해 : 조인조건이 왜 이렇게 생겼는지)
+					// 이해: 106개의 row가 출력
+
+-- 외부조인(Outer Join)   (참고만) -> "결과테이블의 빈칸쪽에 (+)를"
+		- "Left Join" = "Left Outer Join"
+		- "Right Join" = "Right Outer Join"
+-- WHERE e1.manager_id = e2.employee_id(+);  
+					// 이해: 107개의 row가 출력
+
+----------------------------------------------------------------------------------
+Oracle : user1101
+
+--INSERT INTO board(bno, writer_id, title, content)
+--VALUES (SEQ_BOARD.nextval, 'YG', '오늘의제목1', '내용01');
+--INSERT INTO board(bno, writer_id, title, content)
+--VALUES (SEQ_BOARD.nextval, 'YG', '오늘의제목2', '내용02');
+--INSERT INTO board(bno, writer_id, title, content)
+--VALUES (SEQ_BOARD.nextval, 'YG', '오늘의제목3', '내용03');
+--INSERT INTO board(bno, writer_id, title, content)
+--VALUES (SEQ_BOARD.nextval, 'YG', '오늘의제목4', '내용04');
+
+--INSERT INTO board(bno, writer_id, title, content)
+--VALUES (SEQ_BOARD.nextval, 'YG', '오늘의제목29', '내용29');
+
+select * from board;
+
+--select SEQ_BOARD.currval from dual;
+
+--commit;
+INSERT INTO board(bno, writer_id, title, content)
+VALUES (SEQ_BOARD.nextval, 'YG', '조만간 사라질', '내용...');
+savepoint sp1;
+INSERT INTO board(bno, writer_id, title, content)
+VALUES (SEQ_BOARD.nextval, 'YG', '조만간 사라질2', '내용2...');
+savepoint sp2;
+delete from board;
+--rollback;   -- (1)
+--rollback to sp2;  -- (2)
+--rollback to sp1;  -- (3)
+--rollback to sp2; -- (4) ERR. 이해.
+rollback;
+
+select * from board, member where board.writer_id = member.id;
+
+-----------------------------------------------------------------------
+Oracle: hr
+
+
+--Ex. 부서ID가 40인 사원들의 사원ID, 이름, 성, "부서명"을 출력.
+SELECT e.employee_id, e.first_name, e.last_name, e.department_id 
+FROM employees e, departments d
+WHERE e.department_id = d.department_id;
+
+--        employees   department_id
+--        departments department_id   location_id
+--        locations                   location_id
+--연습2.	'Steven King' 사원의 이름_성, 부서명과 부서의 위치(country_id, city)를 조회.
+--	(SELECT 결과)	이름_성		부서명		부서위치
+--			Steven King	Executive	US Seattle
+SELECT e.first_name || ' ' || e.last_name "이름_성", d.department_name "부서명", l.country_id || ' ' || l.city "부서위치"
+FROM employees e, departments d, locations l
+WHERE e.department_id = d.department_id
+AND d.location_id = l.location_id;
+
+    employees   department_id
+    departments department_id   location_id
+    locations                   location_id country_id
+    countries                               country_id
+    
+--연습3.	연봉이 100000달러(십만달러) 이상인 사원들이 근무하는 부서가 위치하는 국가명을 사원의 이름과 함께 조회.
+--					※ 연봉 = (월급 + 커미션) * 12
+--	(SELECT 결과)	이름	성	연봉	부서명	국가명
+SELECT e.first_name 이름, e.last_name 성, (e.salary + e.salary*NVL(e.commission_pct,0))*12 연봉, d.department_name 부서명, c.country_name 국가명
+FROM employees e, departments d, locations l, countries c
+WHERE e.department_id = d.department_id
+AND d.location_id = l.location_id
+AND l.country_id = c.country_id
+AND (e.salary + e.salary*NVL(e.commission_pct,0))*12 >= 100000
+ORDER BY 연봉 DESC;
+
+--Ex. 사원테이블의 사원들의 이름_성, '관리자(매니저.사수)'의 이름_성을 조회.
+--	(단, 매니저ID가 (null)인 경우는 제외)
+SELECT e1.first_name || ' ' || e1.last_name "나", e2.first_name || ' ' || e2.last_name "매니저"
+FROM employees e1, employees e2
+WHERE e1.manager_id = e2.employee_id;   // (이해 : 조인조건이 왜 이렇게 생겼는지)
+
+-- 외부조인(Outer Join)   (참고만)
+-- WHERE e1.manager_id = e2.employee_id(+);  
+
+------------------------------------------------------------------------
+show autocommit;
+set autocommit off;
+
+							끝.
+
+
