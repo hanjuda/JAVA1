@@ -1,0 +1,195 @@
+정처산기 W8 Day4.
+
+-----------------------------------------------
+조인.
+[정리]	등가조인(Equi-join) <-- 대부분.
+	비등가조인(Non-equi-join)
+	외부조인(Outer-join) <-- 데이터에 NULL 이 있을 때.
+	자연조인(Natural Join) <-- 조인조건 없이 (알아서 = 같은 이름 같은 타입)
+
+--Ex. 사원들의 이름, 성, 부서명을 출력.
+SELECT e.first_name, e.last_name, d.department_name
+FROM employees e, departments d
+WHERE e.department_id = d.department_id;
+
+-- 자연조인(Natural Join):
+-- (1)
+SELECT e.first_name, e.last_name, d.department_name
+FROM employees e NATURAL JOIN departments d;
+-- (2)
+SELECT * FROM (select first_name, salary, department_id from employees) e 
+natural join (select department_id, department_name from departments) d;
+
+	※ "대부분의 전문가들은 NATURAL JOIN이 위험한 것이며, 그러므로 이것의 사용을 강력하게 비권장하고 있다"
+	  (https://ko.wikipedia.org/wiki/Join_(SQL))
+
+--------------------------------------------------------------------------
+ANSI표준.
+
+Ex. 등가조인. (Oracle)
+	SELECT a.col1, a.col2, b.col3
+	FROM table1 a, table2 b
+	WHERE a.col1 = b.col1;
+Ex. 등가조인. (ANSI표준) -- 참고만.
+	SELECT a.col1, a.col2, b.col3
+	FROM table1 a INNER JOIN table2 b
+	ON a.col1 = b.col1
+	WHERE a.col1 > 10;
+
+------------------------------------------------------------------------
+서브쿼리(Subquery)
+	- '메인쿼리' vs '서브쿼리'
+	- '메인쿼리' 안에서 '리터럴' 대신해서 사용하는 SELECT문.
+	- 주로 WHERE절에서 쓰임.
+	- FROM절에서 쓰이기도 함. --> 이때의 서브쿼리를 "인라인뷰(Inline View)"
+
+"단일 행 서브쿼리" --> 서브쿼리의 실행 결과 딱 1개의 행이 조회되는 경우.
+
+--Ex. 성이 King인 사원의 월급보다 많이 받는 사원들을 조회(이름, 월급)
+SELECT first_name, salary
+FROM employees
+WHERE salary > (SELECT salary FROM employees WHERE last_name='King'); -- ERR. (이해)
+
+--select first_name, last_name, salary, 
+(select department_name from departments where department_id <= 90)
+from employees
+where salary > (select salary from employees where first_name = 'Neena'); -- ERR. (이해)
+
+[정리]	> < >= <= = != 등의 연산자는
+	'단일 행 서브쿼리'와 함께 사용해야 함!
+	그런데, '다중 행 서브쿼리'인 경우 --> ALL 또는 ANY를 활용 가능.
+			(ex) "> 다중 행 서브쿼리" --- X
+			(ex) "> ALL (다중 행 서브쿼리)" ---> "> MAX"
+			(ex) "> ANY (다중 행 서브쿼리)" ---> "> MIN"
+
+--연습1. Location_ID가 2500인 부서에서 근무하는 사원의 이름, 성, 업무ID, 부서ID를 조회.
+
+--연습2. Toronto에서 근무하는 사원의 이름, 성, 부서명을 조회.
+
+--연습3. 이름이 David인 사원들과 같은 부서에서 근무하는 사원의 이름, 성, 폰번호, 부서ID를 조회.
+select department_id from employees where first_name='David';
+select first_name 이름, last_name 성, phone_number 폰번호, department_id 부서ID
+from employees
+where department_id = ANY (select department_id from employees where first_name='David');
+
+--------------------------------------------------------------------------------
+학습모듈 p.58~
+
+-- IN 연산자 / NOT IN 연산자
+--연습3(변형).	이름이 David인 사원들과 같은 부서에서 근무하는 사원의 이름, 성, 폰번호, 부서ID를 조회.
+select first_name 이름, last_name 성, phone_number 폰번호, department_id 부서ID
+from employees
+where department_id NOT IN (select department_id from employees where first_name='David');
+
+-------------------------------------------------------------------------------
+- 복습(내부평가대비).
+- 프로젝트 : 	① DB설계 ---> 필요시 변경 
+		② 모든 시나리오에 대해서, JDBC에서 DB테스트.
+		③ 스토리보드에 SQL작성.
+
+-------------------------------------------------------------------------------
+Oracle (hr) :
+
+select * from employees;
+
+--Ex. 사원들의 이름, 성, 부서명을 출력.
+SELECT e.first_name, e.last_name, d.department_name
+FROM employees e, departments d
+WHERE e.department_id = d.department_id;
+
+-- 자연조인(Natural Join):
+SELECT e.first_name, e.last_name, d.department_name
+FROM employees e NATURAL JOIN departments d;
+
+--Ex. 'Neena' 보다 많이 받는 사원들의 이름, 성, 월급(salary)
+select salary from employees where first_name = 'Neena';  -- 17000
+select first_name, last_name, salary from employees
+where salary > 17000;
+-- 서브쿼리를 사용하면,
+select first_name, last_name, salary 
+from employees
+where salary > (select salary from employees where first_name = 'Neena');
+
+--Ex. 성이 King인 사원의 월급보다 많이 받는 사원들을 조회(이름, 월급)
+--SELECT first_name, salary
+--FROM employees
+--WHERE salary > (SELECT salary FROM employees WHERE last_name='King'); -- ERR. (이해)
+
+--select first_name, last_name, salary, 
+--(select department_name from departments where department_id <= 90)
+--from employees
+--where salary > (select salary from employees where first_name = 'Neena'); -- ERR. (이해)
+
+SELECT first_name, salary
+FROM employees
+WHERE salary > ANY (SELECT salary FROM employees WHERE last_name='King');
+
+SELECT first_name, salary
+FROM employees
+WHERE salary > (SELECT min(salary) FROM employees WHERE last_name='King');
+
+--연습3.	이름이 David인 사원들과 같은 부서에서 근무하는 사원의 이름, 성, 폰번호, 부서ID를 조회.
+select department_id from employees where first_name='David';
+select first_name 이름, last_name 성, phone_number 폰번호, department_id 부서ID
+from employees
+where department_id = ANY (select department_id from employees where first_name='David');
+-----------------------------------------------------------------
+-- 뷰(View)
+create view VIEW_1 as
+select e.first_name 이름, e.salary 월급, d.department_name 부서명 
+from employees e, departments d
+where e.department_id = d.department_id
+order by 월급 desc;
+
+select * from VIEW_1 where 월급>=10000 and 월급<=15000;
+
+-------------------------------------------------------
+-- IN 연산자 / NOT IN 연산자
+--연습3(변형).	이름이 David인 사원들과 같은 부서에서 근무하는 사원의 이름, 성, 폰번호, 부서ID를 조회.
+select first_name 이름, last_name 성, phone_number 폰번호, department_id 부서ID
+from employees
+where department_id NOT IN (select department_id from employees where first_name='David');
+
+-----------------------------------------------------------------------------
+Oracle (User1101) :
+
+select * from board;
+--insert into board values(SEQ_BOARD.nextval, 'YG', '...', ',,,', TO_DATE('2021/11/04','YYYY/MM/DD'));
+
+create view VIEW_2 as 
+select m.name 작성자, b.title 글제목, b.content 글내용
+from board b, member m
+where b.writer_id = m.id;
+
+select * from VIEW_2;
+
+create view VIEW_3 as
+select writer_id, title, content from board;
+
+select * from VIEW_3;
+INSERT INTO VIEW_3 values ('YG', '이게', '될까??');
+
+-------------------------------------------------------------------------------
+Oracle (SYSTEM) :
+
+grant create view to user1101;
+
+-------------------------------------------------------------------------------
+			
+							끝.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
