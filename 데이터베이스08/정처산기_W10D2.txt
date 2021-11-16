@@ -1,0 +1,69 @@
+정보처리산업기사 취득과정, W10 Day2.
+
+[TODAY] 10시~ 내부평가대비 "데이터 입출력 구현"
+	플젝 / 상담:이다윗, 심주영, 
+
+
+						LM2001020205_16v4 (데.입.구현)
+
+
+--------------------------------------------------------------------------------
+Oracle(user1116):
+
+-- << CREATE TABLE / 컬럼레벨로 제약조건 설정(PK와 FK) >>
+--create table employees(
+--    id number primary key,
+--    name varchar2(20)
+--);
+--create table salaries (
+--    emp_no number references employees(id),
+--    salary number,
+--    from_date date,
+--    to_date date
+--);
+
+-- << to_date() 오라클 함수 사용 : 문자열타입 -> date타입 변환 >>
+--update salaries set from_date=sysdate where emp_no=9500;
+--update salaries set to_date=to_date('2021-11-19','YYYY-MM-DD') where emp_no=9500;
+--commit;
+
+-- << procedure 정의 >>  // 주의: 이 밑에 다른 문장이 없어야.
+--create or replace procedure test1 (
+--    p_emp_no IN salaries.emp_no%TYPE
+--)
+--as
+--    o_salary number := null;
+--begin
+--    select salary
+--    into o_salary
+--    from salaries
+--    where emp_no = p_emp_no;
+--    dbms_output.put_line('사원번호 ' || p_emp_no || '인 사원의 월급 : ' || o_salary || '만원');
+--end test1;
+
+
+-- << 프로시져에서 화면출력이 가능하도록 설정 >>   // 주의 : 오른쪽에 주석이 없어야.
+--set serveroutput on;      
+
+-- << 프로시져 실행(호출) >>
+---- 사원번호 9500인 사원의 월급 : ____만원.
+--exec test1(9500);    
+
+--create or replace procedure test2 (
+--    p_emp_no IN salaries.emp_no%TYPE,
+--    p_salary IN salaries.salary%TYPE
+--) 
+--as
+--begin
+--    insert into salaries(emp_no, salary, from_date, to_date)
+--    values (p_emp_no, p_salary, sysdate, null);
+--    dbms_output.put_line('입력되었음');
+--end test2;
+
+--exec test2(9500, 15000);
+
+---------------------------------------------------------------------------
+
+								끝.
+
+
